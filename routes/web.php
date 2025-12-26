@@ -1,0 +1,55 @@
+<?php
+
+use App\Http\Controllers\ShopController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\OrderController;
+
+use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+
+use Illuminate\Support\Facades\Route;
+
+// ================= SHOP ROUTES =================
+Route::get('/', [ShopController::class, 'index'])->name('shop.index');
+Route::get('/category/{slug}', [ShopController::class, 'category'])->name('shop.category');
+Route::get('/product/{slug}', [ShopController::class, 'show'])->name('shop.product');
+Route::get('/search', [ShopController::class, 'search'])->name('shop.search');
+
+Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
+Route::post('/cart/update', [CartController::class, 'update'])->name('cart.update');
+Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
+Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
+
+Route::get('/checkout', [OrderController::class, 'checkout'])->name('order.checkout');
+Route::post('/order', [OrderController::class, 'store'])->name('order.store');
+Route::get('/order/success/{orderId}', [OrderController::class, 'success'])->name('order.success');
+
+// ================= ADMIN ROUTES =================
+Route::prefix('admin')->name('admin.')->group(function () {
+
+    // Admin Auth Routes
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+
+    // Protected Admin Routes
+    Route::middleware('admin')->group(function () {
+        // Dashboard
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+        // Category Management
+        Route::resource('categories', CategoryController::class);
+
+        // Product Management
+        Route::resource('products', ProductController::class);
+
+        // Order Management
+        Route::get('orders', [AdminOrderController::class, 'index'])->name('orders.index');
+        Route::get('orders/{id}', [AdminOrderController::class, 'show'])->name('orders.show');
+        Route::post('orders/{id}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
+    });
+});
