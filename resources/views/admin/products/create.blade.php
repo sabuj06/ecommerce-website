@@ -32,6 +32,35 @@
                         </select>
                     </div>
 
+                    <div class="mb-3">
+                        <label class="form-label">Brand *</label>
+                        <select class="form-control" name="brand_id" required>
+                        <option value="">Select Brand</option>
+                                @foreach($brands as $brand)
+                        <option value="{{ $brand->id }}">
+                             {{ $brand->name }}
+                    </option>
+                @endforeach
+            </select>
+         </div>
+         <div class="mb-2">
+                        <label class="form-label">Colors *</label>
+                        <select class="form-control" name="colors_id" required>
+                            <option value="">Select Brand</option>
+                            @foreach($colors as $color)
+                            <option value="{{ $color->id }}"
+                                 {{ isset($product) && $product->color_id == $color->id ? 'selected' : '' }}>
+                                {{ $color->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+
+
+                    
+                   
+
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Price (৳) *</label>

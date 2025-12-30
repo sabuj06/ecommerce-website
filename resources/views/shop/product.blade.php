@@ -30,7 +30,7 @@
                 Category: <a href="{{ route('shop.category', $product->category->slug) }}">{{ $product->category->name }}</a>
             </p>
             
-            <h3 class="text-primary mb-3">৳{{ number_format($product->price, 2) }}</h3>
+            <h3 class="text-primary mb-3">₹{{ number_format($product->price, 2) }}</h3>
             
             <!-- Stock Status -->
             <div class="mb-3">

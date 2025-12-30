@@ -43,7 +43,7 @@
                                 <h5 class="card-title">{{ $product->name }}</h5>
                                 <p class="card-text text-muted">{{ Str::limit($product->description, 60) }}</p>
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <h4 class="text-primary mb-0">৳{{ number_format($product->price, 2) }}</h4>
+                                    <h4 class="text-primary mb-0">₹{{ number_format($product->price, 2) }}</h4>
                                     <span class="badge bg-secondary">Stock: {{ $product->stock }}</span>
                                 </div>
                             </div>

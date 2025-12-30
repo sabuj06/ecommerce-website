@@ -61,6 +61,12 @@
                     <a class="nav-link {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}" href="{{ route('admin.categories.index') }}">
                         <i class="fas fa-folder"></i> Categories
                     </a>
+                    <a class="nav-link {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}" href="{{ route('admin.brands.index') }}">
+                        <i class="fas fa-folder"></i> Brands
+                    </a>
+                    <a class="nav-link {{ request()->routeIs('admin.colors.*') ? 'active' : '' }}" href="{{ route('admin.colors.index') }}">
+                        <i class="fas fa-palette"></i> Colors
+                    </a>
                     <a class="nav-link {{ request()->routeIs('admin.products.*') ? 'active' : '' }}" href="{{ route('admin.products.index') }}">
                         <i class="fas fa-box"></i> Products
                     </a>
