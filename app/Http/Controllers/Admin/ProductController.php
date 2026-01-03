@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Brand;
-use App\Models\Color;            // ← ADD
+use App\Models\Color;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -15,7 +15,7 @@ class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::with('category', 'brand', 'color')->paginate(10); // ← UPDATE
+        $products = Product::with('category', 'brand', 'color')->paginate(10);
         return view('admin.products.index', compact('products'));
     }
 
@@ -23,7 +23,7 @@ class ProductController extends Controller
     {
         $categories = Category::all();
         $brands = Brand::where('is_active', true)->get();
-        $colors = Color::all(); // ← ADD
+        $colors = Color::all();
 
         return view('admin.products.create', compact('categories', 'brands', 'colors'));
     }
@@ -34,8 +34,8 @@ class ProductController extends Controller
             'name'        => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
             'brand_id'    => 'nullable|exists:brands,id',
-            'color_id'    => 'nullable|exists:colors,id',   // ← ADD
-            'description'=> 'required|string',
+            'color_id'    => 'nullable|exists:colors,id',
+            'description' => 'required|string',
             'price'       => 'required|numeric|min:0',
             'stock'       => 'required|integer|min:0',
             'image'       => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -51,11 +51,12 @@ class ProductController extends Controller
             'slug'        => Str::slug($request->name),
             'category_id' => $request->category_id,
             'brand_id'    => $request->brand_id,
-            'color_id'    => $request->color_id,   // ← ADD
-            'description'=> $request->description,
+            'color_id'    => $request->color_id,
+            'description' => $request->description,
             'price'       => $request->price,
             'stock'       => $request->stock,
             'image'       => $imagePath,
+            'is_active'   => $request->has('is_active') ? 1 : 0,  // ← ADD
         ]);
 
         return response()->json([
@@ -69,7 +70,7 @@ class ProductController extends Controller
         $product = Product::findOrFail($id);
         $categories = Category::all();
         $brands = Brand::where('is_active', true)->get();
-        $colors = Color::all(); // ← ADD
+        $colors = Color::all();
 
         return view('admin.products.edit', compact('product', 'categories', 'brands', 'colors'));
     }
@@ -80,8 +81,8 @@ class ProductController extends Controller
             'name'        => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
             'brand_id'    => 'nullable|exists:brands,id',
-            'color_id'    => 'nullable|exists:colors,id',   // ← ADD
-            'description'=> 'required|string',
+            'color_id'    => 'nullable|exists:colors,id',
+            'description' => 'required|string',
             'price'       => 'required|numeric|min:0',
             'stock'       => 'required|integer|min:0',
             'image'       => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -102,11 +103,12 @@ class ProductController extends Controller
             'slug'        => Str::slug($request->name),
             'category_id' => $request->category_id,
             'brand_id'    => $request->brand_id,
-            'color_id'    => $request->color_id,   // ← ADD
-            'description'=> $request->description,
+            'color_id'    => $request->color_id,
+            'description' => $request->description,
             'price'       => $request->price,
             'stock'       => $request->stock,
             'image'       => $imagePath,
+            'is_active'   => $request->has('is_active') ? 1 : 0,  // ← ADD
         ]);
 
         return response()->json([
@@ -115,19 +117,51 @@ class ProductController extends Controller
         ]);
     }
 
+    // ← ADD THIS NEW METHOD
+    public function toggleStatus($id)
+    {
+        try {
+            $product = Product::findOrFail($id);
+            $product->is_active = !$product->is_active;
+            $product->save();
+            
+            $status = $product->is_active ? 'activated' : 'deactivated';
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Product ' . $status . ' successfully!',
+                'is_active' => $product->is_active
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update status: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function destroy($id)
     {
-        $product = Product::findOrFail($id);
+        try {
+            $product = Product::findOrFail($id);
 
-        if ($product->image) {
-            Storage::disk('public')->delete($product->image);
+            if ($product->image) {
+                Storage::disk('public')->delete($product->image);
+            }
+
+            $product->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Product deleted successfully'
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete product: ' . $e->getMessage()
+            ], 500);
         }
-
-        $product->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Product deleted successfully'
-        ]);
     }
 }

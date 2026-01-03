@@ -35,7 +35,7 @@
                                 <td>
                                     <span class="badge bg-info">{{ $order->orderItems->count() }} items</span>
                                 </td>
-                                <td><strong>৳{{ number_format($order->total_amount, 2) }}</strong></td>
+                                <td><strong>₹{{ number_format($order->total_amount, 2) }}</strong></td>
                                 <td>
                                     <select class="form-select form-select-sm status-select" data-order-id="{{ $order->id }}">
                                         <option value="pending" {{ $order->status == 'pending' ? 'selected' : '' }}>Pending</option>

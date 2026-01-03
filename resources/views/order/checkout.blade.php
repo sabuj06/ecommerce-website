@@ -53,13 +53,13 @@
                     @foreach($cartItems as $item)
                         <div class="d-flex justify-content-between mb-2">
                             <span>{{ $item->product->name }} × {{ $item->quantity }}</span>
-                            <span>৳{{ number_format($item->product->price * $item->quantity, 2) }}</span>
+                            <span>₹{{ number_format($item->product->price * $item->quantity, 2) }}</span>
                         </div>
                     @endforeach
                     <hr>
                     <div class="d-flex justify-content-between mb-2">
                         <strong>Subtotal:</strong>
-                        <strong>৳{{ number_format($total, 2) }}</strong>
+                        <strong>₹{{ number_format($total, 2) }}</strong>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
                         <span>Shipping:</span>
@@ -68,7 +68,7 @@
                     <hr>
                     <div class="d-flex justify-content-between">
                         <h5>Total:</h5>
-                        <h5 class="text-primary">৳{{ number_format($total, 2) }}</h5>
+                        <h5 class="text-primary">₹{{ number_format($total, 2) }}</h5>
                     </div>
                 </div>
             </div>

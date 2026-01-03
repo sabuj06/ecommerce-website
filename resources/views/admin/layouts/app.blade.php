@@ -11,7 +11,8 @@
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -73,6 +74,24 @@
                     <a class="nav-link {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}" href="{{ route('admin.orders.index') }}">
                         <i class="fas fa-shopping-cart"></i> Orders
                     </a>
+                     <!-- DataTables Section -->
+                    <div class="nav-link text-white" style="background: #495057; font-weight: bold; margin-top: 10px;">
+                        <i class="fas fa-table"></i> DataTables View
+                    </div>
+                    
+                    <a class="nav-link ps-4 {{ request()->routeIs('admin.products.datatable') ? 'active' : '' }}" href="{{ route('admin.products.datatable') }}">
+                        <i class="fas fa-box"></i> Products DT
+                    </a>
+                    
+                    <a class="nav-link ps-4 {{ request()->routeIs('admin.brands.datatable') ? 'active' : '' }}" href="{{ route('admin.brands.datatable') }}">
+                        <i class="fas fa-tag"></i> Brands DT
+                    </a>
+                    
+                    <a class="nav-link ps-4 {{ request()->routeIs('admin.orders.datatable') ? 'active' : '' }}" href="{{ route('admin.orders.datatable') }}">
+                        <i class="fas fa-shopping-cart"></i> Orders DT
+                    </a>
+
+
                     <a class="nav-link" href="{{ route('shop.index') }}" target="_blank">
                         <i class="fas fa-external-link-alt"></i> View Site
                     </a>

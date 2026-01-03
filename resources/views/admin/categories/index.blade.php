@@ -62,31 +62,98 @@
 
 @push('scripts')
 <script>
-    $('.delete-category').click(function() {
-        if(!confirm('Are you sure you want to delete this category?')) return;
-
+$(document).ready(function() {
+    // Delete Category
+    $('.delete-category').on('click', function(e) {
+        e.preventDefault();
+        
         const btn = $(this);
         const categoryId = btn.data('id');
-
-        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
-
-        $.ajax({
-            url: '/admin/categories/' + categoryId,
-            type: 'DELETE',
-            success: function(response) {
-                if(response.success) {
-                    btn.closest('tr').fadeOut(function() {
-                        $(this).remove();
-                    });
-                    alert(response.message);
-                }
-            },
-            error: function() {
-                alert('Failed to delete category');
-                btn.prop('disabled', false).html('<i class="fas fa-trash"></i>');
+        const deleteUrl = '{{ url("admin/categories") }}/' + categoryId;
+        
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "Do you want to delete this category?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Show loading
+                btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+                
+                $.ajax({
+                    url: deleteUrl,
+                    type: 'DELETE',
+                    data: {
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        if(response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Deleted!',
+                                text: response.message,
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                            
+                            // Remove row with animation
+                            btn.closest('tr').fadeOut(500, function() {
+                                $(this).remove();
+                            });
+                        }
+                    },
+                    error: function(xhr) {
+                        console.log('Error:', xhr);
+                        
+                        // Reset button
+                        btn.prop('disabled', false).html('<i class="fas fa-trash"></i>');
+                        
+                        if(xhr.status === 400 && xhr.responseJSON) {
+                            // Category has products or subcategories
+                            const response = xhr.responseJSON;
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Cannot Delete Category!',
+                                html: `
+                                    <p class="mb-3">${response.message}</p>
+                                    <div class="alert alert-warning text-start">
+                                        <strong>Steps to delete this category:</strong>
+                                        <ol class="mb-0 mt-2">
+                                            <li>Go to <strong>Products</strong> section</li>
+                                            <li>Find products in this category</li>
+                                            <li>Change their category or delete those products</li>
+                                            <li>If there are subcategories, delete or move them first</li>
+                                            <li>Then try deleting this category again</li>
+                                        </ol>
+                                    </div>
+                                `,
+                                confirmButtonText: 'Got it',
+                                confirmButtonColor: '#3085d6'
+                            });
+                        } else if(xhr.status === 500 && xhr.responseJSON) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Server Error!',
+                                text: xhr.responseJSON.message || 'Something went wrong',
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error!',
+                                text: 'Failed to delete category. Please try again.',
+                            });
+                        }
+                    }
+                });
             }
         });
     });
+});
 </script>
 @endpush
 @endsection

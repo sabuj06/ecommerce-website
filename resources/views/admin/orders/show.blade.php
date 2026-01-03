@@ -35,7 +35,7 @@
             <div class="card-body">
                 <p><strong>Order ID:</strong> #{{ $order->id }}</p>
                 <p><strong>Order Date:</strong> {{ $order->created_at->format('d M, Y h:i A') }}</p>
-                <p><strong>Total Amount:</strong> <span class="fs-4 text-success">৳{{ number_format($order->total_amount, 2) }}</span></p>
+                <p><strong>Total Amount:</strong> <span class="fs-4 text-success">₹{{ number_format($order->total_amount, 2) }}</span></p>
                 <p>
                     <strong>Status:</strong>
                     <select class="form-select form-select-sm d-inline-block w-auto" id="status-select">
@@ -76,21 +76,21 @@
                             </td>
                             <td>
                                 @if($item->product->image)
-                                    <img src="{{ asset('storage/' . $item->product->image) }}" alt="{{ $item->product->name }}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px;">
+                                    <img src="{{ asset('storage/'. $item->product->image) }}" alt="{{ $item->product->name }}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px;">
                                 @else
                                     <div style="width: 60px; height: 60px; background: #ddd; border-radius: 5px;"></div>
                                 @endif
                             </td>
-                            <td>৳{{ number_format($item->price, 2) }}</td>
+                            <td>₹{{ number_format($item->price, 2) }}</td>
                             <td>{{ $item->quantity }}</td>
-                            <td><strong>৳{{ number_format($item->price * $item->quantity, 2) }}</strong></td>
+                            <td><strong>₹{{ number_format($item->price * $item->quantity, 2) }}</strong></td>
                         </tr>
                     @endforeach
                 </tbody>
                 <tfoot class="table-light">
                     <tr>
                         <th colspan="4" class="text-end">Total:</th>
-                        <th class="fs-5 text-success">৳{{ number_format($order->total_amount, 2) }}</th>
+                        <th class="fs-5 text-success">₹{{ number_format($order->total_amount, 2) }}</th>
                     </tr>
                 </tfoot>
             </table>

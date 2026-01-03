@@ -5,13 +5,16 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\Admin\ColorController;
 
-
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\CategoryController;
-use App\Http\Controllers\Admin\BrandController; // ← ADD
+use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+
+use App\Http\Controllers\Admin\ProductDataTableController;
+use App\Http\Controllers\Admin\BrandDataTableController;
+use App\Http\Controllers\Admin\OrderDataTableController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -45,18 +48,35 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+        // ================= DataTable Routes =================
+        // Products DataTable
+        Route::get('products/datatable', [ProductDataTableController::class, 'index'])->name('products.datatable');
+        Route::get('products/datatable/data', [ProductDataTableController::class, 'getData'])->name('products.datatable.data');
+
+        // Brands DataTable
+        Route::get('brands/datatable', [BrandDataTableController::class, 'index'])->name('brands.datatable');
+        Route::get('brands/datatable/data', [BrandDataTableController::class, 'getData'])->name('brands.datatable.data');
+
+        // Orders DataTable
+        Route::get('orders/datatable', [OrderDataTableController::class, 'index'])->name('orders.datatable');
+        Route::get('orders/datatable/data', [OrderDataTableController::class, 'getData'])->name('orders.datatable.data');
+
+        // ================= Resource Routes =================
         // Category Management
         Route::resource('categories', CategoryController::class);
 
-        // Brand Management ← ADD
+        // Brand Management
         Route::resource('brands', BrandController::class);
 
-        
-        Route::resource('colors', ColorController::class);     // ← এই line add করুন
-
+        // Color Management
+        Route::resource('colors', ColorController::class);
 
         // Product Management
         Route::resource('products', ProductController::class);
+
+        // Product Toggle Status
+        Route::post('products/{id}/toggle-status', [ProductController::class, 'toggleStatus'])
+            ->name('products.toggleStatus');
 
         // Order Management
         Route::get('orders', [AdminOrderController::class, 'index'])->name('orders.index');
@@ -64,27 +84,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('orders/{id}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
     });
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

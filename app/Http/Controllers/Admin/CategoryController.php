@@ -87,16 +87,36 @@ class CategoryController extends Controller
     }
 
     // Delete category
-    public function destroy($id)
-    {
+  public function destroy($id)
+{
+    try {
         $category = Category::findOrFail($id);
+        
+        // Check if category has any products
+        $productCount = $category->products()->count();
+        
+        if ($productCount > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot delete! This category has ' . $productCount . ' product(s). Please move or delete those products first.'
+            ], 400);
+        }
+        
+        // Safe to delete
         $category->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'Category deleted successfully'
+            'message' => 'Category deleted successfully!'
         ]);
+        
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to delete category: ' . $e->getMessage()
+        ], 500);
     }
+}
 }
 
 

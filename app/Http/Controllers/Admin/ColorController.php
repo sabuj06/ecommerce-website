@@ -61,32 +61,34 @@ class ColorController extends Controller
         ]);
     }
 
-    public function destroy($id)
-    {
-        try {
-            $color = Color::findOrFail($id);
-            
-            $productCount = $color->products()->count();
-            
-            if ($productCount > 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Cannot delete! This color has ' . $productCount . ' product(s).'
-                ], 400);
-            }
-            
-            $color->delete();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Color deleted successfully'
-            ]);
-            
-        } catch (\Exception $e) {
+   public function destroy($id)
+{
+    try {
+        $color = Color::findOrFail($id);
+        
+        // Check if color has any products
+        $productCount = $color->products()->count();
+        
+        if ($productCount > 0) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to delete color'
-            ], 500);
+                'message' => 'Cannot delete! This color has ' . $productCount . ' product(s). Please change the color of those products or delete them first.'
+            ], 400);
         }
+        
+        // Safe to delete
+        $color->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Color deleted successfully!'
+        ]);
+        
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to delete color: ' . $e->getMessage()
+        ], 500);
     }
+}
 }

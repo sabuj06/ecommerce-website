@@ -117,7 +117,7 @@
                                     <tr>
                                         <td>#{{ $order->id }}</td>
                                         <td>{{ $order->customer_name }}</td>
-                                        <td>৳{{ number_format($order->total_amount, 2) }}</td>
+                                        <td>₹{{ number_format($order->total_amount, 2) }}</td>
                                         <td>
                                             <span class="badge bg-{{ $order->status == 'pending' ? 'warning' : ($order->status == 'completed' ? 'success' : 'info') }}">
                                                 {{ ucfirst($order->status) }}

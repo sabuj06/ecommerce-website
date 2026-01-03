@@ -67,26 +67,97 @@
 
 @push('scripts')
 <script>
-    $('.delete-brand').click(function() {
-        if(!confirm('Are you sure?')) return;
+   $(document).ready(function() {
+    // Delete Brand
+    $('.delete-brand').on('click', function(e) {
+        e.preventDefault();
+        
         const btn = $(this);
         const brandId = btn.data('id');
-        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
-
-        $.ajax({
-            url: '/admin/brands/' + brandId,
-            type: 'DELETE',
-            success: function(response) {
-                if(response.success) {
-                    alert(response.message);
-                    btn.closest('tr').fadeOut();
-                } else {
-                    alert(response.message);
-                    btn.prop('disabled', false).html('<i class="fas fa-trash"></i>');
-                }
+        const deleteUrl = '{{ url("admin/brands") }}/' + brandId;
+        
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "Do you want to delete this brand?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Show loading
+                btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+                
+                $.ajax({
+                    url: deleteUrl,
+                    type: 'DELETE',
+                    data: {
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        if(response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Deleted!',
+                                text: response.message,
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                            
+                            // Remove row with animation
+                            btn.closest('tr').fadeOut(500, function() {
+                                $(this).remove();
+                            });
+                        }
+                    },
+                    error: function(xhr) {
+                        console.log('Error:', xhr);
+                        
+                        // Reset button
+                        btn.prop('disabled', false).html('<i class="fas fa-trash"></i>');
+                        
+                        if(xhr.status === 400 && xhr.responseJSON) {
+                            // Brand has products
+                            const response = xhr.responseJSON;
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Cannot Delete Brand!',
+                                html: `
+                                    <p class="mb-3">${response.message}</p>
+                                    <div class="alert alert-warning text-start">
+                                        <strong>Steps to delete this brand:</strong>
+                                        <ol class="mb-0 mt-2">
+                                            <li>Go to <strong>Products</strong> section</li>
+                                            <li>Find products using this brand</li>
+                                            <li>Change their brand or delete those products</li>
+                                            <li>Then try deleting this brand again</li>
+                                        </ol>
+                                    </div>
+                                `,
+                                confirmButtonText: 'Got it',
+                                confirmButtonColor: '#3085d6'
+                            });
+                        } else if(xhr.status === 500 && xhr.responseJSON) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Server Error!',
+                                text: xhr.responseJSON.message || 'Something went wrong',
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error!',
+                                text: 'Failed to delete brand. Please try again.',
+                            });
+                        }
+                    }
+                });
             }
         });
     });
+});
 </script>
 @endpush
 @endsection

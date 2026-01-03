@@ -45,8 +45,8 @@
          </div>
          <div class="mb-2">
                         <label class="form-label">Colors *</label>
-                        <select class="form-control" name="colors_id" required>
-                            <option value="">Select Brand</option>
+                        <select class="form-control" name="color_id" required>
+                            <option value="">Select Colours</option>
                             @foreach($colors as $color)
                             <option value="{{ $color->id }}"
                                  {{ isset($product) && $product->color_id == $color->id ? 'selected' : '' }}>
@@ -56,14 +56,9 @@
                         </select>
                     </div>
 
-
-
-                    
-                   
-
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Price (৳) *</label>
+                            <label class="form-label">Price ₹*</label>
                             <input type="number" class="form-control" name="price" step="0.01" min="0" required>
                         </div>
 

@@ -86,35 +86,38 @@ class BrandController extends Controller
     }
 
     public function destroy($id)
-    {
-        try {
-            $brand = Brand::findOrFail($id);
-            
-            $productCount = $brand->products()->count();
-            
-            if ($productCount > 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Cannot delete! This brand has ' . $productCount . ' product(s).'
-                ], 400);
-            }
-            
-            if ($brand->logo) {
-                Storage::disk('public')->delete($brand->logo);
-            }
-            
-            $brand->delete();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Brand deleted successfully'
-            ]);
-            
-        } catch (\Exception $e) {
+{
+    try {
+        $brand = Brand::findOrFail($id);
+        
+        // Check if brand has any products
+        $productCount = $brand->products()->count();
+        
+        if ($productCount > 0) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to delete brand'
-            ], 500);
+                'message' => 'Cannot delete! This brand has ' . $productCount . ' product(s). Please assign those products to another brand or delete them first.'
+            ], 400);
         }
+        
+        // Delete logo if exists
+        if ($brand->logo && file_exists(public_path($brand->logo))) {
+            unlink(public_path($brand->logo));
+        }
+        
+        // Safe to delete
+        $brand->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Brand deleted successfully!'
+        ]);
+        
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to delete brand: ' . $e->getMessage()
+        ], 500);
     }
+}
 }

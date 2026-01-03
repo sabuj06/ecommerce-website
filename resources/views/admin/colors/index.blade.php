@@ -61,23 +61,68 @@
 
 @push('scripts')
 <script>
-    $('.delete-color').click(function() {
-        if(!confirm('Are you sure?')) return;
+     $('.delete-color').click(function() {
         const btn = $(this);
         const colorId = btn.data('id');
-        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
-
-        $.ajax({
-            url: '/admin/colors/' + colorId,
-            type: 'DELETE',
-            success: function(response) {
-                if(response.success) {
-                    alert(response.message);
-                    btn.closest('tr').fadeOut();
-                } else {
-                    alert(response.message);
-                    btn.prop('disabled', false).html('<i class="fas fa-trash"></i>');
-                }
+        
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "Do you want to delete this color?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+                
+                $.ajax({
+                    url: '/admin/colors/' + colorId,
+                    type: 'DELETE',
+                    data: {
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        if(response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Deleted!',
+                                text: response.message,
+                                timer: 2000
+                            }).then(() => {
+                                btn.closest('tr').fadeOut();
+                            });
+                        }
+                    },
+                    error: function(xhr) {
+                        btn.prop('disabled', false).html('<i class="fas fa-trash"></i>');
+                        
+                        if(xhr.status === 400) {
+                            // Color has products - user-friendly error
+                            const response = xhr.responseJSON;
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Cannot Delete!',
+                                html: `<p>${response.message}</p>
+                                       <p class="mt-3"><strong>To delete this color:</strong></p>
+                                       <ol class="text-start">
+                                           <li>Go to Products section</li>
+                                           <li>Change the color of products using this color</li>
+                                           <li>Then try deleting again</li>
+                                       </ol>`,
+                                confirmButtonText: 'Got it'
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error!',
+                                text: 'Failed to delete color. Please try again.',
+                            });
+                        }
+                    }
+                });
             }
         });
     });
