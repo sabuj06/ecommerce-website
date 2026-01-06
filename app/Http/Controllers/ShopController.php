@@ -37,4 +37,33 @@ class ShopController extends Controller
         $categories = Category::all();
         return view('shop.search', compact('products', 'categories', 'query'));
     }
+
+    // Live Search API for AJAX
+    public function liveSearch(Request $request)
+    {
+        $query = $request->input('q');
+        
+        if (empty($query) || strlen($query) < 2) {
+            return response()->json([]);
+        }
+
+        $products = Product::where('name', 'LIKE', "%{$query}%")
+            ->orWhere('description', 'LIKE', "%{$query}%")
+            ->where('is_active', 1)
+            ->limit(8)
+            ->get(['id', 'name', 'slug', 'price', 'image']);
+
+        return response()->json($products);
+    }
+
+    // Brand Products
+    public function brand($slug)
+    {
+        $brand = \App\Models\Brand::where('slug', $slug)->firstOrFail();
+        $categories = Category::all();
+        $brands = \App\Models\Brand::where('is_active', true)->get();
+        $products = Product::where('brand_id', $brand->id)->paginate(12);
+        
+        return view('shop.brand', compact('brand', 'categories', 'brands', 'products'));
+    }
 }

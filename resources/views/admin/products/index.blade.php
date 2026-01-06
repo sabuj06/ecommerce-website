@@ -67,16 +67,40 @@
                         </span>
                     </td>
                     <td>
-                        <!-- Status Toggle -->
-                        <div class="form-check form-switch d-flex justify-content-center">
-                            <input class="form-check-input status-toggle" 
-                                   type="checkbox" 
-                                   data-id="{{ $product->id }}"
-                                   {{ $product->is_active ? 'checked' : '' }}>
+                        <!-- Status Dropdown -->
+                        @php
+                            $statuses = [
+                                0 => ['label' => 'Inactive', 'color' => 'secondary'],
+                                1 => ['label' => 'Active', 'color' => 'success'],
+                                8 => ['label' => 'Unavailable', 'color' => 'danger']
+                            ];
+                            $currentStatus = $statuses[$product->is_active] ?? $statuses[1];
+                        @endphp
+                        
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-{{ $currentStatus['color'] }} dropdown-toggle status-dropdown-btn" 
+                                    type="button" 
+                                    data-bs-toggle="dropdown"
+                                    id="statusDropdown{{ $product->id }}">
+                                {{ $currentStatus['label'] }}
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="statusDropdown{{ $product->id }}">
+                                @foreach($statuses as $value => $status)
+                                    @if($value != $product->is_active)
+                                        <li>
+                                            <a class="dropdown-item change-status" 
+                                               href="javascript:void(0)" 
+                                               data-id="{{ $product->id }}" 
+                                               data-status="{{ $value }}"
+                                               data-label="{{ $status['label'] }}"
+                                               data-color="{{ $status['color'] }}">
+                                                <span class="badge bg-{{ $status['color'] }}">{{ $status['label'] }}</span>
+                                            </a>
+                                        </li>
+                                    @endif
+                                @endforeach
+                            </ul>
                         </div>
-                        <small class="status-text-{{ $product->id }} badge bg-{{ $product->is_active ? 'success' : 'secondary' }}">
-                            {{ $product->is_active ? 'Active' : 'Inactive' }}
-                        </small>
                     </td>
                     <td>{{ $product->created_at->format('d M, Y') }}</td>
                     <td>
@@ -103,30 +127,68 @@
 </div>
 @endsection
 
+@push('styles')
+<style>
+    .dropdown-menu {
+        background-color: #fff !important;
+        border: 1px solid #ddd !important;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
+        z-index: 1050 !important;
+        min-width: 120px !important;
+    }
+    
+    .dropdown-item {
+        padding: 8px 16px !important;
+        cursor: pointer !important;
+    }
+    
+    .dropdown-item:hover {
+        background-color: #f8f9fa !important;
+    }
+    
+    .table-responsive {
+        overflow-x: auto;
+        overflow-y: visible !important;
+    }
+    
+    .dropdown {
+        position: relative;
+        z-index: 1;
+    }
+</style>
+@endpush
+
 @push('scripts')
 <script>
 $(document).ready(function() {
     
-    // Toggle Status
-    $('.status-toggle').on('change', function() {
-        const checkbox = $(this);
-        const productId = checkbox.data('id');
-        const isChecked = checkbox.is(':checked');
+    // Change Status from Dropdown
+    $(document).on('click', '.change-status', function(e) {
+        e.preventDefault();
         
-        checkbox.prop('disabled', true);
+        const link = $(this);
+        const productId = link.data('id');
+        const newStatus = link.data('status');
+        const newLabel = link.data('label');
+        const newColor = link.data('color');
+        const button = $('#statusDropdown' + productId);
+        
+        // Disable button during request
+        button.prop('disabled', true);
         
         $.ajax({
-            url: '/admin/products/' + productId + '/toggle-status',
+            url: '/admin/products/' + productId + '/update-status',
             type: 'POST',
-            data: { _token: '{{ csrf_token() }}' },
+            data: { 
+                _token: '{{ csrf_token() }}',
+                status: newStatus
+            },
             success: function(response) {
                 if(response.success) {
-                    const badge = $('.status-text-' + productId);
-                    if(response.is_active) {
-                        badge.removeClass('bg-secondary').addClass('bg-success').text('Active');
-                    } else {
-                        badge.removeClass('bg-success').addClass('bg-secondary').text('Inactive');
-                    }
+                    // Update button appearance
+                    button.removeClass('btn-secondary btn-success btn-danger')
+                          .addClass('btn-' + newColor)
+                          .text(newLabel);
                     
                     Swal.fire({
                         icon: 'success',
@@ -134,19 +196,27 @@ $(document).ready(function() {
                         timer: 1500,
                         showConfirmButton: false
                     });
+                    
+                    // Reload page after 1.5 seconds to update dropdown options
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
                 }
-                checkbox.prop('disabled', false);
+                button.prop('disabled', false);
             },
-            error: function() {
-                checkbox.prop('checked', !isChecked);
-                checkbox.prop('disabled', false);
-                Swal.fire('Error!', 'Failed to update status', 'error');
+            error: function(xhr) {
+                button.prop('disabled', false);
+                let errorMsg = 'Failed to update status';
+                if(xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMsg = xhr.responseJSON.message;
+                }
+                Swal.fire('Error!', errorMsg, 'error');
             }
         });
     });
 
     // Delete Product
-    $('.delete-product').on('click', function() {
+    $(document).on('click', '.delete-product', function() {
         const btn = $(this);
         const productId = btn.data('id');
         
@@ -168,7 +238,9 @@ $(document).ready(function() {
                     success: function(response) {
                         if(response.success) {
                             Swal.fire('Deleted!', response.message, 'success');
-                            $('#product-row-' + productId).fadeOut();
+                            $('#product-row-' + productId).fadeOut(500, function() {
+                                $(this).remove();
+                            });
                         }
                     },
                     error: function() {

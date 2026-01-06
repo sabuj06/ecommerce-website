@@ -33,7 +33,8 @@ Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
 Route::get('/checkout', [OrderController::class, 'checkout'])->name('order.checkout');
 Route::post('/order', [OrderController::class, 'store'])->name('order.store');
 Route::get('/order/success/{orderId}', [OrderController::class, 'success'])->name('order.success');
-
+Route::get('/brand/{slug}', [ShopController::class, 'brand'])->name('shop.brand');
+Route::get('/live-search', [ShopController::class, 'liveSearch'])->name('shop.liveSearch');
 // ================= ADMIN ROUTES =================
 Route::prefix('admin')->name('admin.')->group(function () {
 
@@ -74,9 +75,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Product Management
         Route::resource('products', ProductController::class);
 
-        // Product Toggle Status
+        // Product Toggle Status (Old method - keep for backward compatibility)
         Route::post('products/{id}/toggle-status', [ProductController::class, 'toggleStatus'])
             ->name('products.toggleStatus');
+
+        // Product Update Status (New method - for dropdown: 0=Inactive, 1=Active, 8=Unavailable)
+        Route::post('products/{id}/update-status', [ProductController::class, 'updateStatus'])
+            ->name('products.updateStatus');
 
         // Order Management
         Route::get('orders', [AdminOrderController::class, 'index'])->name('orders.index');
@@ -84,16 +89,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('orders/{id}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
     });
 });
-
-
-
-
-
-
-
-
-
-
 
 
 

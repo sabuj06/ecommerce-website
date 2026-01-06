@@ -56,7 +56,7 @@ class ProductController extends Controller
             'price'       => $request->price,
             'stock'       => $request->stock,
             'image'       => $imagePath,
-            'is_active'   => $request->has('is_active') ? 1 : 0,  // ← ADD
+            'is_active'   => $request->has('is_active') ? 1 : 0,
         ]);
 
         return response()->json([
@@ -108,7 +108,7 @@ class ProductController extends Controller
             'price'       => $request->price,
             'stock'       => $request->stock,
             'image'       => $imagePath,
-            'is_active'   => $request->has('is_active') ? 1 : 0,  // ← ADD
+            'is_active'   => $request->has('is_active') ? 1 : 0,
         ]);
 
         return response()->json([
@@ -117,7 +117,41 @@ class ProductController extends Controller
         ]);
     }
 
-    // ← ADD THIS NEW METHOD
+    // Update Status Method for Dropdown (0=Inactive, 1=Active, 8=Unavailable)
+    public function updateStatus(Request $request, $id)
+    {
+        try {
+            $product = Product::findOrFail($id);
+            
+            // Validate status value
+            $request->validate([
+                'status' => 'required|in:0,1,8'
+            ]);
+            
+            $product->is_active = $request->status;
+            $product->save();
+
+            $statusLabels = [
+                0 => 'Inactive',
+                1 => 'Active',
+                8 => 'Unavailable'
+            ];
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Product status updated to ' . $statusLabels[$request->status],
+                'status' => $request->status
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update status: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // Toggle Status Method (Keep this for backward compatibility if needed)
     public function toggleStatus($id)
     {
         try {

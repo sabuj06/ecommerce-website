@@ -3,11 +3,26 @@
 @section('title', $category->name)
 
 @section('content')
+
+<style>
+    /* Sidebar Sticky CSS */
+    .sidebar-fixed {
+        position: sticky;
+        top: 80px;
+    }
+
+    @media (max-width: 767px) {
+        .sidebar-fixed {
+            position: static;
+        }
+    }
+</style>
+
 <div class="container">
     <div class="row">
         <!-- Sidebar - Categories -->
         <div class="col-md-3">
-            <div class="card">
+            <div class="card sidebar-fixed">
                 <div class="card-header bg-primary text-white">
                     <h5>Categories</h5>
                 </div>

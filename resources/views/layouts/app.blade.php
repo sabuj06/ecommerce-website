@@ -11,8 +11,9 @@
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-        <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
-
+    
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    
     <style>
         body { 
             padding-top: 70px; 
@@ -28,6 +29,92 @@
             position: absolute; 
             top: -8px; 
             right: -8px; 
+        }
+        
+        /* Live Search Dropdown Styles */
+        .search-wrapper {
+            position: relative;
+            width: 350px;
+        }
+        
+        .search-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 1050;
+            display: none;
+            margin-top: 2px;
+        }
+        
+        .search-dropdown.show {
+            display: block;
+        }
+        
+        .search-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .search-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .search-item:last-child {
+            border-bottom: none;
+        }
+        
+        .search-item-image {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 6px;
+            margin-right: 12px;
+        }
+        
+        .search-item-details {
+            flex: 1;
+        }
+        
+        .search-item-name {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        
+        .search-item-price {
+            font-size: 0.85rem;
+            color: #0d6efd;
+            font-weight: 600;
+        }
+        
+        .search-loading {
+            padding: 15px;
+            text-align: center;
+            color: #666;
+        }
+        
+        .search-no-results {
+            padding: 15px;
+            text-align: center;
+            color: #999;
+        }
+        
+        @media (max-width: 768px) {
+            .search-wrapper {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -47,10 +134,34 @@
                         <a class="nav-link" href="{{ route('shop.index') }}">Home</a>
                     </li>
                 </ul>
-                <form class="d-flex me-3" action="{{ route('shop.search') }}" method="GET">
-                    <input class="form-control me-2" type="search" name="q" placeholder="Search products..." value="{{ request('q') }}">
-                    <button class="btn btn-outline-light" type="submit">Search</button>
-                </form>
+                
+                <!-- Live Search Form -->
+                <div class="search-wrapper me-3">
+                    <form action="{{ route('shop.search') }}" method="GET" id="searchForm">
+                        <div class="input-group">
+                            <input 
+                                class="form-control" 
+                                type="search" 
+                                name="q" 
+                                id="searchInput"
+                                placeholder="Search products..." 
+                                value="{{ request('q') }}"
+                                autocomplete="off">
+                            <button class="btn btn-outline-light" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <!-- Live Search Dropdown -->
+                    <div class="search-dropdown" id="searchDropdown">
+                        <div class="search-loading" id="searchLoading">
+                            <i class="fas fa-spinner fa-spin"></i> Searching...
+                        </div>
+                        <div id="searchResults"></div>
+                    </div>
+                </div>
+                
                 <a href="{{ route('cart.index') }}" class="btn btn-outline-light position-relative">
                     <i class="fas fa-shopping-cart"></i> Cart
                     <span class="badge bg-danger cart-badge" id="cart-count">0</span>
@@ -91,6 +202,81 @@
                 $('#cart-count').text(data.count);
             });
         }
+
+        // Live Search Functionality
+        let searchTimeout;
+        const searchInput = $('#searchInput');
+        const searchDropdown = $('#searchDropdown');
+        const searchResults = $('#searchResults');
+        const searchLoading = $('#searchLoading');
+
+        searchInput.on('input', function() {
+            const query = $(this).val().trim();
+
+            clearTimeout(searchTimeout);
+
+            if (query.length < 2) {
+                searchDropdown.removeClass('show');
+                return;
+            }
+
+            searchLoading.show();
+            searchResults.empty();
+            searchDropdown.addClass('show');
+
+            searchTimeout = setTimeout(function() {
+                $.ajax({
+                    url: '{{ route("shop.liveSearch") }}',
+                    method: 'GET',
+                    data: { q: query },
+                    success: function(products) {
+                        searchLoading.hide();
+                        
+                        if (products.length === 0) {
+                            searchResults.html('<div class="search-no-results">No products found</div>');
+                            return;
+                        }
+
+                        let html = '';
+                        products.forEach(function(product) {
+                            const imageUrl = product.image 
+                                ? '{{ asset("storage") }}/' + product.image 
+                                : 'https://via.placeholder.com/50?text=' + encodeURIComponent(product.name);
+                            
+                            html += `
+                                <a href="/product/${product.slug}" class="search-item text-decoration-none">
+                                    <img src="${imageUrl}" alt="${product.name}" class="search-item-image">
+                                    <div class="search-item-details">
+                                        <div class="search-item-name">${product.name}</div>
+                                        <div class="search-item-price">₹${parseFloat(product.price).toLocaleString()}</div>
+                                    </div>
+                                </a>
+                            `;
+                        });
+
+                        searchResults.html(html);
+                    },
+                    error: function() {
+                        searchLoading.hide();
+                        searchResults.html('<div class="search-no-results">Error loading results</div>');
+                    }
+                });
+            }, 300);
+        });
+
+        // Close dropdown when clicking outside
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.search-wrapper').length) {
+                searchDropdown.removeClass('show');
+            }
+        });
+
+        // Show dropdown when input is focused and has value
+        searchInput.on('focus', function() {
+            if ($(this).val().trim().length >= 2) {
+                searchDropdown.addClass('show');
+            }
+        });
 
         $(document).ready(function() {
             updateCartCount();
