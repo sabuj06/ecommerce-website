@@ -35,6 +35,17 @@ Route::post('/order', [OrderController::class, 'store'])->name('order.store');
 Route::get('/order/success/{orderId}', [OrderController::class, 'success'])->name('order.success');
 Route::get('/brand/{slug}', [ShopController::class, 'brand'])->name('shop.brand');
 Route::get('/live-search', [ShopController::class, 'liveSearch'])->name('shop.liveSearch');
+Route::prefix('shop')->group(function () {
+    Route::get('/', [ShopController::class, 'index'])->name('shop.index');
+    Route::get('/category/{category}', [ShopController::class, 'category'])->name('shop.category');
+    Route::get('/brand/{brand}', [ShopController::class, 'brand'])->name('shop.brand');
+    Route::get('/category/{category}/brand/{brand}', [ShopController::class, 'categoryBrand'])->name('shop.category.brand');
+    Route::get('/product/{product}', [ShopController::class, 'show'])->name('shop.product');
+    Route::get('/search', [ShopController::class, 'search'])->name('shop.search');
+    Route::get('/live-search', [ShopController::class, 'liveSearch'])->name('shop.live-search');
+});
+
+
 // ================= ADMIN ROUTES =================
 Route::prefix('admin')->name('admin.')->group(function () {
 
